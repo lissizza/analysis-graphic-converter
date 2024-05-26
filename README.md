@@ -20,8 +20,8 @@
 1. Клонируйте репозиторий:
 
     ```bash
-    git clone <URL_вашего_репозитория>
-    cd <название_репозитория>
+    git clone git@github.com:lissizza/analysis-graphic-converter.git
+    cd analysis-graphic-converter
     ```
 
 2. Создайте виртуальное окружение и активируйте его:
