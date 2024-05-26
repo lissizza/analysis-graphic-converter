@@ -1,0 +1,22 @@
+{
+    "name": "Analysis Graphic Converter",
+    "description": "A Python application to convert analysis results into graphics",
+    "repository": "https://github.com/lissizza/analysis-graphic-converter",
+    "keywords": ["python", "pytest", "heroku"],
+    "env": {
+      "PYTHONUNBUFFERED": {
+        "description": "Prevents Python from buffering stdout and stderr",
+        "value": "true"
+      }
+    },
+    "buildpacks": [
+      {
+        "url": "heroku/python"
+      }
+    ],
+    "scripts": {
+      "test": "pytest"
+    },
+    "addons": []
+  }
+  
