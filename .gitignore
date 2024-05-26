@@ -4,3 +4,5 @@ files
 __pycache__
 .git
 .mypy_cache
+.vscode
+tox.ini

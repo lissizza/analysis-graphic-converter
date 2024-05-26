@@ -1,37 +1,57 @@
-import logging
-import nest_asyncio
 import asyncio
-import signal
+import logging
 import os
+import signal
+
+import nest_asyncio
 from dotenv import load_dotenv
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackQueryHandler
-from handlers import handle_non_pdf, start, handle_lab_selection, handle_file, handle_download
+from telegram.ext import (
+    Application,
+    CallbackQueryHandler,
+    CommandHandler,
+    MessageHandler,
+    filters,
+)
+
+from handlers import (
+    handle_download,
+    handle_file,
+    handle_lab_selection,
+    handle_non_pdf,
+    start,
+)
 
 # Load environment variables from .env file
 load_dotenv()
 
 # Get the bot token from environment variable
-TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
 # Enable logging
 logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 
 # Patch existing event loop
 nest_asyncio.apply()
 
+
 async def main() -> None:
     application = Application.builder().token(TOKEN).build()
 
-    application.add_handler(CommandHandler('start', start))
-    application.add_handler(CallbackQueryHandler(handle_lab_selection, pattern='^lab_helix$'))
-    application.add_handler(MessageHandler(filters.Document.MimeType('application/pdf'), handle_file))
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(
+        CallbackQueryHandler(handle_lab_selection, pattern="^lab_helix$")
+    )
+    application.add_handler(
+        MessageHandler(filters.Document.MimeType("application/pdf"), handle_file)
+    )
     application.add_handler(MessageHandler(~filters.Document.PDF, handle_non_pdf))
-    application.add_handler(CallbackQueryHandler(handle_download, pattern='^download_(png|pdf)_'))
+    application.add_handler(
+        CallbackQueryHandler(handle_download, pattern="^download_(png|pdf)_")
+    )
 
-    logging.info('Bot started and ready to receive commands')
+    logging.info("Bot started and ready to receive commands")
 
     # Start the application and handle signals
     await application.initialize()
@@ -43,7 +63,7 @@ async def main() -> None:
     stop_event = asyncio.Event()
 
     def _signal_handler(sig):
-        logging.info(f'Received exit signal {sig.name}...')
+        logging.info(f"Received exit signal {sig.name}...")
         stop_event.set()
 
     for sig in (signal.SIGINT, signal.SIGTERM):
@@ -51,12 +71,12 @@ async def main() -> None:
 
     await stop_event.wait()
 
-    logging.info('Stopping application...')
+    logging.info("Stopping application...")
     await application.updater.stop()
     await application.stop()
     await application.shutdown()
-    logging.info('Application stopped gracefully')
+    logging.info("Application stopped gracefully")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     asyncio.run(main())
