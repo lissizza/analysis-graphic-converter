@@ -27,7 +27,6 @@ def plot_scales_with_adjusted_ref_labels_spacing(
         if num_plots <= 0:
             raise ValueError("The number of plots must be greater than zero.")
 
-        # Create a figure and a grid spec
         fig = plt.figure(figsize=(FIGURE_WIDTH, num_plots * FIGURE_HEIGHT_PER_PLOT))
         gs = plt.GridSpec(num_plots, 3, width_ratios=[1, 0.5, 4])
 
@@ -156,14 +155,14 @@ def plot_scales_with_adjusted_ref_labels_spacing(
             ax_value.text(
                 0.5,
                 0.3,
-                f"{value:.2f}",
+                f"{value:.5g}",
                 fontsize=10,
                 verticalalignment="center",
                 horizontalalignment="left",
             )
             if unit:
                 ax_value.text(
-                    1.5,
+                    1.7,
                     0.3,
                     f"{unit}",
                     fontsize=8,

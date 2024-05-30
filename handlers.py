@@ -99,19 +99,15 @@ async def handle_file(update: Update, context: CallbackContext) -> None:
             all_data, analysis_name = extract_data_from_all_pages(pdf)
 
         df_all = create_dataframe(all_data)
-        logging.info(f"DataFrame created: {df_all}")
+        logging.info(f"DataFrame created: {df_all.to_string()}")
 
         if df_all.empty:
             logging.error("Нет данных в PDF файле")
             await update.message.reply_text("Нет данных в PDF файле.")
             return
 
-        output_png_path = save_file(
-            user_name, b"", "png", "output", current_time
-        )  # Empty content, will be overwritten
-        output_pdf_path = save_file(
-            user_name, b"", "pdf", "output", current_time
-        )  # Empty content, will be overwritten
+        output_png_path = save_file(user_name, b"", "png", "output", current_time)
+        output_pdf_path = save_file(user_name, b"", "pdf", "output", current_time)
         plot_scales_with_adjusted_ref_labels_spacing(
             df_all,
             analysis_name,

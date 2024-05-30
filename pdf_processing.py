@@ -6,13 +6,16 @@ import pandas as pd
 import pdfplumber
 
 PATTERN_GENERIC = re.compile(
-    r"([A-Za-zА-Яа-яёЁ0-9\-\(\),\s]+)\s+([\d.]+)\s*(нмоль/мл|мкмоль/л|нмоль/л|ммоль/моль креат.|у.е./моль креат.|ммоль/л)?\s*([\d.]+)?\s*-\s*([\d.]+)?"
+    r"([A-Za-zА-Яа-яёЁ0-9\-\(\),;\.\s\/]+?)\s+(\d+.\d+)\s+(нмоль/мл|мкмоль/л|нмоль/л|ммоль/моль креат.|у.е./моль креат.|ммоль/л)?\s*([\d.]+)?\s*-\s*([\d.]+)?"  # noqa: E501
 )
 PATTERN_NO_REF = re.compile(
-    r"([A-Za-zА-Яа-яёЁ0-9\-\(\),\s]+)\s+([\d.]+)\s+(нмоль/мл|мкмоль/л|нмоль/л|ммоль/моль креат.|у.е./моль креат.|ммоль/л)\s+Референсные значения не"
+    r"([A-Za-zА-Яа-яёЁ0-9\-\(\),\s]+)\s+([\d.]+)\s+(нмоль/мл|мкмоль/л|нмоль/л|ммоль/моль креат.|у.е./моль креат.|ммоль/л)\s+Референсные значения не"  # noqa: E501
 )
 PATTERN_RATIO = re.compile(
     r"([A-Za-zА-Яа-яёЁ0-9\-\(\),/\s]+)\s+([\d.]+)\s+([\d.]+)\s*-\s*([\d.]+)"
+)
+PATTERN_LESS_THAN = re.compile(
+    r"([A-Za-zА-Яа-яёЁ0-9\-\(\),\.\s\/]+?)\s+(\d+.\d+)\s+(нмоль/мл|мкмоль/л|нмоль/л|ммоль/моль креат.|у.е./моль креат.|ммоль/л)?\s*<([\d.]+)?"  # noqa: E501
 )
 
 
@@ -32,7 +35,7 @@ def extract_data_from_page(
 
     for line in lines:
         match = PATTERN_GENERIC.match(line)
-        if match:
+        if match and "Биоматериал" not in line:
             name, value, unit, ref_min, ref_max = match.groups()
             if ref_min and ref_max:
                 all_data.append(
@@ -55,6 +58,13 @@ def extract_data_from_page(
                     all_data.append(
                         (name, float(value), float(ref_min), float(ref_max), "")
                     )
+                else:
+                    match_less_than = PATTERN_LESS_THAN.match(line)
+                    if match_less_than:
+                        name, value, unit, ref_max = match_less_than.groups()
+                        all_data.append((name, float(value), 0.0, float(ref_max), unit))
+                    else:
+                        logging.warning(f"Could not parse line: {line}")
 
     return all_data
 
@@ -67,12 +77,12 @@ def extract_data_from_all_pages(
 
     for page in pdf.pages:
         page_text = page.extract_text()
-        # logging.info(f'Extracted text from page: {page_text}')
+        # logging.info(f"Extracted text from page: {page_text}")
         page_data = extract_data_from_page(page_text)
         all_data.extend(page_data)
         if not analysis_name:
             analysis_name = extract_analysis_name(page_text)
-        # logging.info(f'Extracted data from page: {page_data}')
+        # logging.info(f"Extracted data from page: {page_data}")
 
     logging.info(f"Analysis name: {analysis_name}")
     return all_data, analysis_name
@@ -82,7 +92,7 @@ def create_dataframe(
     data: List[Tuple[str, float, Union[float, None], Union[float, None], str]]
 ) -> pd.DataFrame:
     df = pd.DataFrame(data, columns=["Name", "Value", "Ref_Min", "Ref_Max", "Unit"])
-    df["Value"] = df["Value"].replace({"не": None}).astype(float)
+    df["Value"] = df["Value"].astype(float)
     df["Ref_Min"] = pd.to_numeric(df["Ref_Min"], errors="coerce")
     df["Ref_Max"] = pd.to_numeric(df["Ref_Max"], errors="coerce")
     return df

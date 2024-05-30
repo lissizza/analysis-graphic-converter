@@ -21,13 +21,10 @@ from handlers import (
     start,
 )
 
-# Load environment variables from .env file
 load_dotenv()
 
-# Get the bot token from environment variable
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
-# Enable logging
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
@@ -53,12 +50,10 @@ async def main() -> None:
 
     logging.info("Bot started and ready to receive commands")
 
-    # Start the application and handle signals
     await application.initialize()
     await application.start()
     await application.updater.start_polling()
 
-    # Define signal handler
     loop = asyncio.get_running_loop()
     stop_event = asyncio.Event()
 
