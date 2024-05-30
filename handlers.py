@@ -11,6 +11,9 @@ from pdf_processing import create_dataframe, extract_data_from_all_pages
 from plotting import plot_scales_with_adjusted_ref_labels_spacing
 
 MAX_FILE_SIZE_MB = 10
+LABS = [
+    {"name": "Helix", "callback_data": "lab_helix"},
+]
 
 # Ensure base directories exist
 os.makedirs("files", exist_ok=True)
@@ -18,17 +21,29 @@ os.makedirs("files", exist_ok=True)
 
 async def start(update: Update, context: CallbackContext) -> None:
     logging.info("Команда /start вызвана")
-    keyboard = [[InlineKeyboardButton("Helix", callback_data="lab_helix")]]
+    keyboard = [
+        [
+            InlineKeyboardButton(lab["name"], callback_data=lab["callback_data"])
+            for lab in LABS
+        ]
+    ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text("Выберите лабораторию:", reply_markup=reply_markup)
 
 
 async def handle_lab_selection(update: Update, context: CallbackContext) -> None:
-    logging.info("Лаборатория Helix выбрана")
     query = update.callback_query
+    lab_choice = query.data
+    logging.info(f"Лаборатория {lab_choice} выбрана")
     await query.answer()
+
+    # Сохраните выбор лаборатории в контексте пользователя
+    context.user_data["selected_lab"] = lab_choice
+    lab_name = next(
+        (lab["name"] for lab in LABS if lab["callback_data"] == lab_choice), "Unknown"
+    )
     await query.edit_message_text(
-        text="Пожалуйста, отправьте PDF файл с результатами анализов."
+        text=f"Вы выбрали лабораторию {lab_name}. Пожалуйста, отправьте PDF файл с результатами анализов."
     )
 
 
