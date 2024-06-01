@@ -20,6 +20,10 @@ sample_text_ratio = """
 Лимонная кислота/Янтарная кислота 1.23 0.9 - 1.5
 """
 
+sample_text_less_than = """
+Молочная кислота (лактат, E270) 5.1160 ммоль/моль креат. <1.38
+"""
+
 
 def test_extract_analysis_name():
     analysis_name = extract_analysis_name(sample_text)
@@ -53,7 +57,7 @@ def test_extract_data_from_page_no_ref():
 def test_extract_data_from_page_ratio():
     data = extract_data_from_page(sample_text_ratio)
     assert len(data) == 1
-    assert data[0] == ("Лимонная кислота/Янтарная кислота", 1.23, 0.9, 1.5, "")
+    assert data[0] == ("Лимонная кислота/Янтарная кислота", 1.23, 0.9, 1.5, None)
 
 
 @pytest.fixture
@@ -89,3 +93,15 @@ def test_create_dataframe():
     assert df["Ref_Min"][0] == 4.5000
     assert df["Ref_Max"][0] == 9.0000
     assert df["Unit"][0] == "ммоль/моль креат."
+
+
+def test_extract_data_from_page_less_than():
+    data = extract_data_from_page(sample_text_less_than)
+    assert len(data) == 1
+    assert data[0] == (
+        "Молочная кислота (лактат, E270)",
+        5.1160,
+        0.0,
+        1.38,
+        "ммоль/моль креат.",
+    )
